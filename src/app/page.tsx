@@ -11,8 +11,11 @@ import { store } from "../lib/store";
 import { PostType } from "./_interfaces/home";
 import Loading from "../loading";
 
+import { useRouter } from "next/navigation";
+
 export default function Home() {
   let dispatch = useDispatch<typeof store.dispatch>();
+  const router = useRouter();
 
   const { allPosts } = useSelector(
     (state: ReturnType<typeof store.getState>) => {
@@ -26,8 +29,10 @@ export default function Home() {
     if (userToken && userToken !== "undefined") {
       console.log("Dispatching with token:", userToken);
       dispatch(getAllPosts(userToken));
+    } else {
+      router.push("/login");
     }
-  }, [dispatch]);
+  }, [dispatch, router]);
 
   return (
     <>
