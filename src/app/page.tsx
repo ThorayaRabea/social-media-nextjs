@@ -30,7 +30,7 @@ export default function Home() {
       console.log("Dispatching with token:", userToken);
       dispatch(getAllPosts(userToken));
     } else {
-      router.push("/login");
+      router.push("/logout");
     }
   }, [dispatch, router]);
 

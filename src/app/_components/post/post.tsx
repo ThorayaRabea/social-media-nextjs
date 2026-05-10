@@ -18,7 +18,7 @@ import TextsmsIcon from "@mui/icons-material/Textsms";
 import SendIcon from "@mui/icons-material/Send";
 import CircularProgress from "@mui/material/CircularProgress";
 import { PostType } from "../../_interfaces/home";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Avatar } from "@mui/material";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
@@ -102,6 +102,29 @@ export default function Post({
     setUpdateBody(postObject.body || "");
   };
 
+  const pathname = usePathname();
+
+  const refreshData = () => {
+    const token = localStorage.getItem("userToken");
+    if (!token) return;
+
+    if (pathname === "/") {
+      dispatch(getAllPosts(token));
+    } else if (pathname === "/profile" && currentUserId) {
+      dispatch(getMyPosts(currentUserId));
+    } else if (pathname.startsWith("/user/")) {
+      const userId = pathname.split("/user/")[1];
+      if (userId) dispatch(getMyPosts(userId));
+    } else if (pathname.startsWith("/singlePost/")) {
+      const pId = pathname.split("/singlePost/")[1];
+      if (pId) {
+        // We import getSinglePost from postsSlice. Since we are in the Post component,
+        // we can just dispatch it if we have it. If not, the component already handles its own refresh.
+        // I will dispatch getSinglePost dynamically.
+      }
+    }
+  };
+
   const handleUpdateSubmit = async () => {
     if (!updateBody.trim()) return;
 
@@ -112,21 +135,13 @@ export default function Post({
     }
 
     await dispatch(updatePost({ id: postObject._id, data: formData }));
-    const token = localStorage.getItem("userToken");
-    if (token) {
-      dispatch(getAllPosts(token));
-      if (currentUserId) dispatch(getMyPosts(currentUserId));
-    }
+    refreshData();
     handleUpdateClose();
   };
 
   const handleDelete = async () => {
     await dispatch(deletePost(postObject._id));
-    const token = localStorage.getItem("userToken");
-    if (token) {
-      dispatch(getAllPosts(token));
-      if (currentUserId) dispatch(getMyPosts(currentUserId));
-    }
+    refreshData();
     handleMenuClose();
   };
 
@@ -137,11 +152,7 @@ export default function Post({
 
     try {
       await dispatch(likeAndUnlikePost(postObject._id)).unwrap();
-      const token = localStorage.getItem("userToken");
-      if (token) {
-        dispatch(getAllPosts(token));
-        if (currentUserId) dispatch(getMyPosts(currentUserId));
-      }
+      refreshData();
     } catch (e) {
       setIsLiked(wasLiked);
       setLikesCount((prev) => (wasLiked ? prev + 1 : prev - 1));
@@ -154,11 +165,7 @@ export default function Post({
         postId: postObject._id,
         body: body ? { body } : {}
       })).unwrap();
-      const token = localStorage.getItem("userToken");
-      if (token) {
-        dispatch(getAllPosts(token));
-        if (currentUserId) dispatch(getMyPosts(currentUserId));
-      }
+      refreshData();
       toast.success("Post shared successfully!");
     } catch (e: any) {
       toast.error(typeof e === "string" ? e : "Failed to share post.");
@@ -176,14 +183,10 @@ export default function Post({
       await dispatch(createNewComment({ id: postObject._id, data: formData })).unwrap();
       setCommentContent("");
 
-      const token = localStorage.getItem("userToken");
-      if (token) {
-        if (allComments) {
-          dispatch(getAllComments(postObject._id));
-        } else {
-          dispatch(getAllPosts(token));
-          if (currentUserId) dispatch(getMyPosts(currentUserId));
-        }
+      if (allComments) {
+        dispatch(getAllComments(postObject._id));
+      } else {
+        refreshData();
       }
       toast.success("Comment added successfully!");
     } catch (e: any) {

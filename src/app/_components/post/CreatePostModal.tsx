@@ -10,12 +10,15 @@ import {
   TextField,
   IconButton,
   Box,
+  Tooltip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import { useDispatch } from "react-redux";
 import { createPost, getAllPosts } from "../../../lib/postsSlice";
 import { store } from "../../../lib/store";
+import { usePathname } from "next/navigation";
+import { getMyPosts } from "../../../lib/authSlice";
 
 export default function CreatePostModal() {
   const [open, setOpen] = useState(false);// is modal open or not
@@ -32,6 +35,28 @@ export default function CreatePostModal() {
     setImage(null);
   };//close modal and clear data
 
+  const pathname = usePathname();
+
+  const refreshData = () => {
+    const token = localStorage.getItem("userToken");
+    if (!token) return;
+
+    if (pathname === "/") {
+      dispatch(getAllPosts(token));
+    } else if (pathname === "/profile") {
+      try {
+        const decoded = JSON.parse(atob(token.split(".")[1]));
+        const currentUserId =
+          decoded?.user?._id || decoded?.user || decoded?.id || decoded?._id || decoded?.userId;
+        if (currentUserId) {
+          dispatch(getMyPosts(currentUserId));
+        }
+      } catch (e) {
+        console.error("Error decoding token", e);
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     if (!body.trim()) return;
 
@@ -42,18 +67,17 @@ export default function CreatePostModal() {
     }
 
     await dispatch(createPost(formData));
-    const token = localStorage.getItem("userToken");
-    if (token) {
-      dispatch(getAllPosts(token));
-    }
+    refreshData();
     handleClose();
   };
 
   return (
     <>
-      <IconButton size="large" color="inherit" onClick={handleOpen}>
-        <AddIcon />
-      </IconButton>
+      <Tooltip title="Add Post" arrow placement="bottom" sx={{ fontSize: '1.1rem' }}>
+        <IconButton size="large" color="inherit" onClick={handleOpen} sx={{ transition: "all 0.2s", "&:hover": { color: "#1976d2", transform: "scale(1.1)" } }}>
+          <AddIcon fontSize="large" />
+        </IconButton>
+      </Tooltip>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         <DialogTitle>Create a New Post</DialogTitle>
         <DialogContent>

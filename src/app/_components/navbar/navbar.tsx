@@ -12,6 +12,7 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { Button, Divider } from "@mui/material";
 import CreatePostModal from "../post/CreatePostModal";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,13 +24,23 @@ export default function Navbar() {
   const dispatch = useDispatch<AppDispatch>();
   const [token, setToken] = React.useState<string | null>(null);
 
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogOut = () => {
+    localStorage.removeItem("userToken");
+    setToken(null);
+    handleMenuClose();
+    router.push("/login");
+  };
+
   React.useEffect(() => {
     const storedToken = localStorage.getItem("userToken");
     setToken(storedToken);
-    if (storedToken) {
+    if (storedToken && storedToken !== "undefined" && storedToken !== "null") {
       dispatch(getUnreadNotificationCount());
     }
-  }, [dispatch]);
+  }, [dispatch, pathname]);
 
   const { unreadNotificationsCount, allNotification } = useSelector((state: RootState) => state.notification);
   const badgeCount = unreadNotificationsCount?.data?.unreadCount || 0;
@@ -92,7 +103,7 @@ export default function Navbar() {
       <MenuItem onClick={handleMenuClose} component={Link} href="/profile" sx={{ color: "#333", fontWeight: 500 }}>
         Profile
       </MenuItem>
-      <MenuItem onClick={handleMenuClose} component={Link} href="/logout" sx={{ color: "#d32f2f", fontWeight: 500 }}>
+      <MenuItem onClick={handleLogOut} sx={{ color: "#d32f2f", fontWeight: 500 }}>
         LogOut
       </MenuItem>
     </Menu>
@@ -202,7 +213,7 @@ export default function Navbar() {
         </MenuItem>
       )}
       {token ? (
-        <MenuItem onClick={handleMenuClose} component={Link} href="/logout" sx={{ color: "#d32f2f", textDecoration: "none" }}>
+        <MenuItem onClick={handleLogOut} sx={{ color: "#d32f2f", textDecoration: "none" }}>
           <IconButton size="large" color="inherit">
             <LogoutIcon />
           </IconButton>
