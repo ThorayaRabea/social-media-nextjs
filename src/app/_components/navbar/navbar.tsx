@@ -16,8 +16,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button, Divider } from "@mui/material";
 import CreatePostModal from "../post/CreatePostModal";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../../lib/store";
-import { getAllNotification, getUnreadNotificationCount } from "../../../lib/notificationSlice";
+import { AppDispatch, RootState, store } from "../../../lib/store";
+import { getAllNotification, getUnreadNotificationCount, makeNotificationRead, resetUnreadCount } from "../../../lib/notificationSlice";
 import NotificationItem from "./NotificationItem";
 
 export default function Navbar() {
@@ -31,14 +31,20 @@ export default function Navbar() {
     localStorage.removeItem("userToken");
     setToken(null);
     handleMenuClose();
-    router.push("/login");
+    router.push("/logout");
   };
 
   React.useEffect(() => {
     const storedToken = localStorage.getItem("userToken");
     setToken(storedToken);
-    if (storedToken && storedToken !== "undefined" && storedToken !== "null") {
-      dispatch(getUnreadNotificationCount());
+
+    // Only fetch count if we have a token AND we aren't currently zeroed out locally
+    // This prevents the badge from reappearing after we just cleared it
+    if (storedToken && storedToken !== "undefined" && storedToken !== "null" && pathname !== "/notifications") {
+      const currentCount = store.getState().notification.unreadNotificationsCount?.data?.unreadCount;
+      if (currentCount !== 0) {
+        dispatch(getUnreadNotificationCount());
+      }
     }
   }, [dispatch, pathname]);
 
@@ -74,6 +80,10 @@ export default function Navbar() {
   const handleNotificationsMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setNotificationsAnchorEl(event.currentTarget);
     dispatch(getAllNotification());
+    // Persist "marked as read" so badge stays 0 even after hard reload
+    localStorage.setItem("ag_marked_read", Date.now().toString());
+    dispatch(resetUnreadCount());
+    dispatch(makeNotificationRead());
   };
   const handleNotificationsMenuClose = () => {
     setNotificationsAnchorEl(null);
@@ -137,10 +147,10 @@ export default function Navbar() {
       {allNotification && allNotification?.length > 0 ? (
         <Box sx={{ maxHeight: 300, overflowY: "auto" }}>
           {allNotification?.map((notification: any, index: number) => (
-            <NotificationItem 
-              key={notification._id || index} 
-              notification={notification} 
-              onClick={handleNotificationsMenuClose} 
+            <NotificationItem
+              key={notification._id || index}
+              notification={notification}
+              onClick={handleNotificationsMenuClose}
             />
           ))}
         </Box>
@@ -152,9 +162,9 @@ export default function Navbar() {
         </MenuItem>
       )}
       <Divider />
-      <MenuItem 
-        onClick={handleNotificationsMenuClose} 
-        component={Link} 
+      <MenuItem
+        onClick={handleNotificationsMenuClose}
+        component={Link}
         href="/notifications"
         sx={{ justifyContent: "center", py: 1.5 }}
       >
@@ -197,11 +207,9 @@ export default function Navbar() {
         </MenuItem>
       )}
       {token && (
-        <MenuItem>
-          <Box sx={{ ml: 1 }}>
-            <CreatePostModal />
-          </Box>
-          <p style={{ margin: 0, fontWeight: 500, marginLeft: "8px" }}>Create Post</p>
+        <MenuItem sx={{ display: "flex", alignItems: "center", gap: 0 }}>
+          <CreatePostModal />
+          <p style={{ margin: 0, fontWeight: 500 }}>Create Post</p>
         </MenuItem>
       )}
       {token && (

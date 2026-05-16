@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { Box, Typography, Container, Paper, CircularProgress } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../lib/store";
-import { getAllNotification } from "../../lib/notificationSlice";
+import { getAllNotification, makeNotificationRead, resetUnreadCount } from "../../lib/notificationSlice";
 import NotificationItem from "../_components/navbar/NotificationItem";
 
 export default function NotificationsPage() {
@@ -12,6 +12,8 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     dispatch(getAllNotification());
+    dispatch(makeNotificationRead());
+    dispatch(resetUnreadCount());
   }, [dispatch]);
 
   return (

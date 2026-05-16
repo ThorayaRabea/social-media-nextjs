@@ -21,12 +21,13 @@ export type AuthState = {
   likeAndUnlikeComment: LikeAndUnlikeCommentResponse | null;
   allNotification: NotificationResponse | null;
   unreadNotificationsCount: UnreadNotificationResponse | null;
-}
+  makeNotificationRead: ReadNotificationResponse | null;
+};
 
 export type CreatePostPayload = {
   body: string;
   image?: File;
-}
+};
 
 export type PostType = {
   _id: string;
@@ -82,15 +83,15 @@ export type SignUpPayload = {
   rePassword: string;
   dateOfBirth: string;
   gender: string;
-}
+};
 export type SignUpResponse = {
   success: boolean;
   message: string;
-}
+};
 export type LoginPayload = {
   email: string;
   password: string;
-}
+};
 export type LoginResponse = {
   success: boolean;
   message: string;
@@ -98,15 +99,15 @@ export type LoginResponse = {
   data?: {
     token?: string;
   };
-}
+};
 
 export type ChangePasswordType = {
   password: string;
   newPassword: string;
-}
+};
 export type MyData = {
-  user: MyProfileType
-}
+  user: MyProfileType;
+};
 
 export type MyProfileType = {
   _id: string;
@@ -120,22 +121,22 @@ export type MyProfileType = {
   followersCount: number;
   followingCount: number;
   id: string;
-}
+};
 export type MyProfileResponse = {
   success: boolean;
   message: string;
   data: MyData;
-}
+};
 
 export type MyPostsData = {
   posts: PostType[];
-}
+};
 
 export type MyPostsResponse = {
   success: boolean;
   message: string;
   data: MyPostsData;
-}
+};
 
 export type UserSuggestionType = {
   _id: string;
@@ -144,27 +145,26 @@ export type UserSuggestionType = {
   photo: string;
   mutualFollowersCount: number;
   followersCount: number;
-}
+};
 
 export type FollowSuggestionsData = {
   suggestions: UserSuggestionType[];
-}
+};
 
 export type FollowSuggestionsResponse = {
   success: boolean;
   message: string;
   data: FollowSuggestionsData;
-}
+};
 
 export type FollowAndUnfollowUserResponse = {
   success: boolean;
   message: string;
   data: {
-    following: boolean,
-    followersCount: number,
-
-  }
-}
+    following: boolean;
+    followersCount: number;
+  };
+};
 
 export type UserProfile = {
   _id: string;
@@ -181,7 +181,7 @@ export type UserProfile = {
   followersCount: number;
   followingCount: number;
   id: string;
-}
+};
 
 export type Follower = {
   _id: string;
@@ -190,7 +190,7 @@ export type Follower = {
   followersCount: number;
   followingCount: number;
   id: string;
-}
+};
 
 export type UserProfileResponse = {
   success: boolean;
@@ -199,47 +199,45 @@ export type UserProfileResponse = {
     isFollowing: boolean;
     user: UserProfile;
   };
-}
+};
 
 export type PostCreatedData = {
   post: PostType;
-}
+};
 
 export type PostCreatedResponse = {
   success: boolean;
   message: string;
   data: PostCreatedData;
-}
+};
 export type UpdatePostType = {
   _id: string;
   body: string;
-  privacy: string,
-  user: string,
-  sharedPost: null,
-  likes: [
-    string
-  ],
-  createdAt: string,
-  image: string,
-  likesCount: number,
-  isShare: boolean,
-  id: string
-}
+  privacy: string;
+  user: string;
+  sharedPost: null;
+  likes: [string];
+  createdAt: string;
+  image: string;
+  likesCount: number;
+  isShare: boolean;
+  id: string;
+};
 export type UpdatePostResponse = {
   success: boolean;
   message: string;
   data: {
     post: UpdatePostType;
-  }
-}
+  };
+};
 
 export type DeletePostResponse = {
   success: boolean;
   message: string;
   data: {
     post: UpdatePostType;
-  }
-}
+  };
+};
 export type LikeAndUnlikePostResponse = {
   success: boolean;
   message: string;
@@ -247,9 +245,8 @@ export type LikeAndUnlikePostResponse = {
     like: boolean;
     likesCount: number;
     post: PostType;
-
-  }
-}
+  };
+};
 
 interface PostUser {
   _id: string;
@@ -276,7 +273,7 @@ export type SharedPost = {
   likesCount: number;
   isShare: boolean;
   id: string;
-}
+};
 
 export type Post = {
   _id: string;
@@ -292,7 +289,7 @@ export type Post = {
   likesCount: number;
   isShare: boolean;
   id: string;
-}
+};
 
 export type SharePostResponse = {
   success: boolean;
@@ -300,7 +297,7 @@ export type SharePostResponse = {
   data: {
     post: Post;
   };
-}
+};
 
 export type CreatedCommentType = {
   _id: string;
@@ -312,7 +309,7 @@ export type CreatedCommentType = {
   likesCount: number;
   isReply: boolean;
   id: string;
-}
+};
 
 export type CreatedCommentResponse = {
   success: boolean;
@@ -320,7 +317,7 @@ export type CreatedCommentResponse = {
   data: {
     comment: CreatedCommentType;
   };
-}
+};
 
 export type commnetsReplyResponse = {
   success: boolean;
@@ -328,7 +325,7 @@ export type commnetsReplyResponse = {
   data: {
     reply: CreatedCommentType;
   };
-}
+};
 
 export type createReplyCommentResponseType = {
   success: boolean;
@@ -336,7 +333,7 @@ export type createReplyCommentResponseType = {
   data: {
     reply: CreatedCommentType;
   };
-}
+};
 
 export type UpdateCommentResponse = {
   success: boolean;
@@ -344,12 +341,12 @@ export type UpdateCommentResponse = {
   data: {
     comment: CreatedCommentType;
   };
-}
+};
 export type DeleteCommentResponse = {
   success: boolean;
   message: string;
   data: {};
-}
+};
 
 export type LikeAndUnlikeCommentResponse = {
   success: boolean;
@@ -358,27 +355,31 @@ export type LikeAndUnlikeCommentResponse = {
     like: boolean;
     likesCount: number;
     comment: CreatedCommentType;
-
-  }
-}
-
+  };
+};
 
 export type NotificationResponse = {
   success: boolean;
   message: string;
   data: {
     notifications: Notification[];
-  }
-}
+  };
+};
 export type Notification = {
-  _id: string,
-  recipient: UserType,
-
-}
+  _id: string;
+  recipient: UserType;
+};
 export type UnreadNotificationResponse = {
   success: boolean;
   message: string;
   data: {
     unreadCount: number;
-  }
-}
+  };
+};
+export type ReadNotificationResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    modifiedCount: number;
+  };
+};

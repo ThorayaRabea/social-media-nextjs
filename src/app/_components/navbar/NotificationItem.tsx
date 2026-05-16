@@ -1,6 +1,9 @@
 import React from "react";
 import { Box, Typography, Avatar, MenuItem } from "@mui/material";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../../lib/store";
+import { makeNotificationRead, resetUnreadCount } from "../../../lib/notificationSlice";
 
 interface NotificationItemProps {
   notification: any;
@@ -9,6 +12,7 @@ interface NotificationItemProps {
 
 export default function NotificationItem({ notification, onClick }: NotificationItemProps) {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
 
   // Extract user details safely
   const user = notification.actor || notification.user || notification.creator || notification.sender;
@@ -35,11 +39,30 @@ export default function NotificationItem({ notification, onClick }: Notification
     : "Just now";
 
   // Determine link based on notification properties
-  const postId = notification.entityId || notification.entity?._id || notification.post?._id || (typeof notification.post === 'string' ? notification.post : null);
-  const linkHref = postId ? `/singlePost/${postId}` : `/profile/${user?._id || ""}`;
+  // Deep search for post ID to avoid using comment ID
+  const postId = 
+    // 1. Direct post field
+    notification.post?._id || 
+    notification.post?.id || 
+    (typeof notification.post === 'string' ? notification.post : null) ||
+    // 2. Nested post inside entity (common for comments)
+    notification.entity?.post?._id ||
+    notification.entity?.post?.id ||
+    (typeof notification.entity?.post === 'string' ? notification.entity?.post : null) ||
+    // 3. Fallback only if not a follow notification
+    (!notification.type?.includes("follow") ? (notification.entityId || notification.entity?._id) : null);
+
+  // For profile links (like follow notifications), find the user ID robustly
+  const profileId = user?._id || user?.id || notification.entityId || notification.entity?._id || "";
+  const linkHref = postId ? `/singlePost/${postId}` : `/user/${profileId}`;
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    
+    // Mark all as read when any notification is clicked
+    dispatch(resetUnreadCount());
+    dispatch(makeNotificationRead());
+
     if (onClick) onClick();
     if (linkHref && linkHref !== "#" && linkHref !== "/profile/") {
       router.push(linkHref);
