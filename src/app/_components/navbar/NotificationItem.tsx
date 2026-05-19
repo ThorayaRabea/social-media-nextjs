@@ -20,12 +20,31 @@ export default function NotificationItem({ notification, onClick }: Notification
   const userPhoto = user?.photo || "";
 
   // Notification text/action logic
+  // Prefer server-provided content which correctly describes the context
+  // (e.g. "replied to your comment" vs "commented on your post")
   let content = notification.content || notification.message || "";
-  if (!content) {
-    if (notification.type === "like" || notification.type === "like_post") content = "liked your post.";
-    else if (notification.type === "comment" || notification.type === "comment_post") content = "commented on your post.";
-    else if (notification.type === "follow" || notification.type === "follow_user") content = "started following you.";
-    else content = "interacted with you.";
+  if (!content || content.trim() === "") {
+    // Only use fallbacks when server provides no text at all
+    switch (notification.type) {
+      case "like":
+      case "like_post":
+        content = "liked your post.";
+        break;
+      case "comment":
+      case "comment_post":
+        content = "commented on a post.";
+        break;
+      case "reply":
+      case "reply_comment":
+        content = "replied to your comment.";
+        break;
+      case "follow":
+      case "follow_user":
+        content = "started following you.";
+        break;
+      default:
+        content = "interacted with you.";
+    }
   }
 
   // Format date

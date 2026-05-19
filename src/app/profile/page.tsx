@@ -308,7 +308,7 @@ export default function Profile() {
               </Typography>
             </Card>
           ) : (
-            <Grid container spacing={2}>
+            <Grid container spacing={2} justifyContent="center">
               {userProfile.data.user.following.map((followedUser) => (
                 <Grid item xs={12} sm={6} md={4} key={followedUser._id}>
                   <FollowingUserCard

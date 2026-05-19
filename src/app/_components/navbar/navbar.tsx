@@ -16,7 +16,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button, Divider } from "@mui/material";
 import CreatePostModal from "../post/CreatePostModal";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState, store } from "../../../lib/store";
+import { AppDispatch, RootState } from "../../../lib/store";
 import { getAllNotification, getUnreadNotificationCount, makeNotificationRead, resetUnreadCount } from "../../../lib/notificationSlice";
 import NotificationItem from "./NotificationItem";
 
@@ -38,13 +38,8 @@ export default function Navbar() {
     const storedToken = localStorage.getItem("userToken");
     setToken(storedToken);
 
-    // Only fetch count if we have a token AND we aren't currently zeroed out locally
-    // This prevents the badge from reappearing after we just cleared it
     if (storedToken && storedToken !== "undefined" && storedToken !== "null" && pathname !== "/notifications") {
-      const currentCount = store.getState().notification.unreadNotificationsCount?.data?.unreadCount;
-      if (currentCount !== 0) {
-        dispatch(getUnreadNotificationCount());
-      }
+      dispatch(getUnreadNotificationCount());
     }
   }, [dispatch, pathname]);
 
@@ -80,8 +75,6 @@ export default function Navbar() {
   const handleNotificationsMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setNotificationsAnchorEl(event.currentTarget);
     dispatch(getAllNotification());
-    // Persist "marked as read" so badge stays 0 even after hard reload
-    localStorage.setItem("ag_marked_read", Date.now().toString());
     dispatch(resetUnreadCount());
     dispatch(makeNotificationRead());
   };
