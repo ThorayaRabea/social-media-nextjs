@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-import styles from "./page.module.css";
 import Grid from "@mui/material/Grid";
 import Post from "./_components/post/post";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,11 +9,8 @@ import { store } from "../lib/store";
 import { PostType } from "./_interfaces/home";
 import Loading from "../loading";
 
-import { useRouter } from "next/navigation";
-
 export default function Home() {
-  let dispatch = useDispatch<typeof store.dispatch>();
-  const router = useRouter();
+  const dispatch = useDispatch<typeof store.dispatch>();
 
   const { allPosts } = useSelector(
     (state: ReturnType<typeof store.getState>) => {
@@ -24,15 +19,12 @@ export default function Home() {
   );
 
   useEffect(() => {
+    // AuthGuard guarantees a valid token exists when this page renders
     const userToken = localStorage.getItem("userToken");
-
-    if (userToken && userToken !== "undefined") {
-      console.log("Dispatching with token:", userToken);
+    if (userToken) {
       dispatch(getAllPosts(userToken));
-    } else {
-      router.push("/logout");
     }
-  }, [dispatch, router]);
+  }, [dispatch]);
 
   return (
     <>

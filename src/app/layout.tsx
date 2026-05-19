@@ -6,6 +6,7 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { ThemeProvider } from "@mui/material/styles";
 
 import Navbar from "./_components/navbar/navbar";
+import AuthGuard from "./_components/auth/AuthGuard";
 
 import { Provider } from "react-redux";
 import theme from "../theme";
@@ -29,7 +30,7 @@ export default function RootLayout({
             <Provider store={store}>
               <Navbar />
               <Toaster />
-              {children}
+              <AuthGuard>{children}</AuthGuard>
             </Provider>
           </ThemeProvider>
         </AppRouterCacheProvider>
