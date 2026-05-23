@@ -1,3 +1,4 @@
+"use client";
 import * as React from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
@@ -17,7 +18,11 @@ import { Button, Divider } from "@mui/material";
 import CreatePostModal from "../post/CreatePostModal";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../lib/store";
-import { getAllNotification, getUnreadNotificationCount, makeNotificationRead, resetUnreadCount } from "../../../lib/notificationSlice";
+import {
+  getAllNotification,
+  getUnreadNotificationCount,
+  makeNotificationRead,
+} from "../../../lib/notificationSlice";
 import NotificationItem from "./NotificationItem";
 
 export default function Navbar() {
@@ -34,30 +39,47 @@ export default function Navbar() {
     router.push("/logout");
   };
 
-  React.useEffect(() => {
-    const storedToken = localStorage.getItem("userToken");
-    setToken(storedToken);
-
-    if (storedToken && storedToken !== "undefined" && storedToken !== "null" && pathname !== "/notifications") {
-      dispatch(getUnreadNotificationCount());
-    }
-  }, [dispatch, pathname]);
-
-  const { unreadNotificationsCount, allNotification } = useSelector((state: RootState) => state.notification);
-  const badgeCount = unreadNotificationsCount?.data?.unreadCount || 0;
-
-  // for handle menu
+  // ===== States =====
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  // for handle mobile menu
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
     React.useState<null | HTMLElement>(null);
-  // for handle notifications menu
-  const [notificationsAnchorEl, setNotificationsAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [notificationsAnchorEl, setNotificationsAnchorEl] =
+    React.useState<null | HTMLElement>(null);
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
   const isNotificationsMenuOpen = Boolean(notificationsAnchorEl);
 
+  // ===== Polling كل 30 ثانية =====
+  React.useEffect(() => {
+    const storedToken = localStorage.getItem("userToken");
+    setToken(storedToken);
+
+    if (
+      storedToken &&
+      storedToken !== "undefined" &&
+      storedToken !== "null" &&
+      pathname !== "/notifications"
+    ) {
+      dispatch(getUnreadNotificationCount());
+
+      const interval = setInterval(() => {
+        // وقف الـ polling لو الـ menu مفتوح
+        if (!isNotificationsMenuOpen) {
+          dispatch(getUnreadNotificationCount());
+        }
+      }, 30000);
+
+      return () => clearInterval(interval);
+    }
+  }, [dispatch, pathname, isNotificationsMenuOpen]);
+
+  const { unreadNotificationsCount, allNotification } = useSelector(
+    (state: RootState) => state.notification,
+  );
+  const badgeCount = unreadNotificationsCount?.data?.unreadCount || 0;
+
+  // ===== Handlers =====
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -72,30 +94,32 @@ export default function Navbar() {
     setMobileMoreAnchorEl(event.currentTarget);
   };
 
-  const handleNotificationsMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+  const handleNotificationsMenuOpen = async (
+    event: React.MouseEvent<HTMLElement>,
+  ) => {
     setNotificationsAnchorEl(event.currentTarget);
     dispatch(getAllNotification());
-    dispatch(resetUnreadCount());
-    dispatch(makeNotificationRead());
+
+    // استني الـ API تقرأ كل الـ notifications الأول
+    await dispatch(makeNotificationRead()).unwrap();
+
+    // بعدين اجيب الـ count الجديد من الـ server — هيرجع 0
+    dispatch(getUnreadNotificationCount());
   };
+
   const handleNotificationsMenuClose = () => {
     setNotificationsAnchorEl(null);
   };
 
+  // ===== Menus =====
   const menuId = "primary-search-account-menu";
   const renderMenu = (
     <Menu
       anchorEl={anchorEl}
-      anchorOrigin={{
-        vertical: "top",
-        horizontal: "right",
-      }}
+      anchorOrigin={{ vertical: "top", horizontal: "right" }}
       id={menuId}
       keepMounted
-      transformOrigin={{
-        vertical: "top",
-        horizontal: "right",
-      }}
+      transformOrigin={{ vertical: "top", horizontal: "right" }}
       open={isMenuOpen}
       onClose={handleMenuClose}
       PaperProps={{
@@ -103,10 +127,18 @@ export default function Navbar() {
         sx: { mt: 1.5, borderRadius: 2, minWidth: 150 },
       }}
     >
-      <MenuItem onClick={handleMenuClose} component={Link} href="/profile" sx={{ color: "#333", fontWeight: 500 }}>
+      <MenuItem
+        onClick={handleMenuClose}
+        component={Link}
+        href="/profile"
+        sx={{ color: "#333", fontWeight: 500 }}
+      >
         Profile
       </MenuItem>
-      <MenuItem onClick={handleLogOut} sx={{ color: "#d32f2f", fontWeight: 500 }}>
+      <MenuItem
+        onClick={handleLogOut}
+        sx={{ color: "#d32f2f", fontWeight: 500 }}
+      >
         LogOut
       </MenuItem>
     </Menu>
@@ -116,24 +148,27 @@ export default function Navbar() {
   const renderNotificationsMenu = (
     <Menu
       anchorEl={notificationsAnchorEl}
-      anchorOrigin={{
-        vertical: "top",
-        horizontal: "right",
-      }}
+      anchorOrigin={{ vertical: "top", horizontal: "right" }}
       id={notificationsMenuId}
       keepMounted
-      transformOrigin={{
-        vertical: "top",
-        horizontal: "right",
-      }}
+      transformOrigin={{ vertical: "top", horizontal: "right" }}
       open={isNotificationsMenuOpen}
       onClose={handleNotificationsMenuClose}
       PaperProps={{
         elevation: 3,
-        sx: { mt: 1.5, borderRadius: 2, minWidth: 300, maxWidth: 350, maxHeight: 400 },
+        sx: {
+          mt: 1.5,
+          borderRadius: 2,
+          minWidth: 300,
+          maxWidth: 350,
+          maxHeight: 400,
+        },
       }}
     >
-      <Typography variant="subtitle1" sx={{ px: 2, py: 1, fontWeight: 700, color: "#1976d2" }}>
+      <Typography
+        variant="subtitle1"
+        sx={{ px: 2, py: 1, fontWeight: 700, color: "#1976d2" }}
+      >
         Notifications
       </Typography>
       <Divider />
@@ -172,16 +207,10 @@ export default function Navbar() {
   const renderMobileMenu = (
     <Menu
       anchorEl={mobileMoreAnchorEl}
-      anchorOrigin={{
-        vertical: "top",
-        horizontal: "right",
-      }}
+      anchorOrigin={{ vertical: "top", horizontal: "right" }}
       id={mobileMenuId}
       keepMounted
-      transformOrigin={{
-        vertical: "top",
-        horizontal: "right",
-      }}
+      transformOrigin={{ vertical: "top", horizontal: "right" }}
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
       PaperProps={{
@@ -190,8 +219,17 @@ export default function Navbar() {
       }}
     >
       {token && (
-        <MenuItem onClick={(e) => { handleMobileMenuClose(); handleNotificationsMenuOpen(e); }}>
-          <IconButton size="large" aria-label={`show ${badgeCount} new notifications`} color="inherit">
+        <MenuItem
+          onClick={(e) => {
+            handleMobileMenuClose();
+            handleNotificationsMenuOpen(e);
+          }}
+        >
+          <IconButton
+            size="large"
+            aria-label={`show ${badgeCount} new notifications`}
+            color="inherit"
+          >
             <Badge badgeContent={badgeCount} color="error">
               <NotificationsIcon />
             </Badge>
@@ -206,7 +244,12 @@ export default function Navbar() {
         </MenuItem>
       )}
       {token && (
-        <MenuItem onClick={handleMenuClose} component={Link} href="/profile" sx={{ color: "#333", textDecoration: "none" }}>
+        <MenuItem
+          onClick={handleMenuClose}
+          component={Link}
+          href="/profile"
+          sx={{ color: "#333", textDecoration: "none" }}
+        >
           <IconButton size="large" color="inherit">
             <AccountCircle />
           </IconButton>
@@ -214,14 +257,26 @@ export default function Navbar() {
         </MenuItem>
       )}
       {token ? (
-        <MenuItem onClick={handleLogOut} sx={{ color: "#d32f2f", textDecoration: "none" }}>
+        <MenuItem
+          onClick={handleLogOut}
+          sx={{ color: "#d32f2f", textDecoration: "none" }}
+        >
           <IconButton size="large" color="inherit">
             <LogoutIcon />
           </IconButton>
           <p style={{ margin: 0, fontWeight: 500 }}>LogOut</p>
         </MenuItem>
       ) : (
-        <MenuItem onClick={handleMenuClose} component={Link} href="/login" sx={{ color: "#1976d2", textDecoration: "none", justifyContent: "center" }}>
+        <MenuItem
+          onClick={handleMenuClose}
+          component={Link}
+          href="/login"
+          sx={{
+            color: "#1976d2",
+            textDecoration: "none",
+            justifyContent: "center",
+          }}
+        >
           <p style={{ margin: "8px", fontWeight: 600 }}>Login</p>
         </MenuItem>
       )}
@@ -231,11 +286,10 @@ export default function Navbar() {
   return (
     <Box sx={{ flexGrow: 1, mb: 3 }}>
       <AppBar
-        position="sticky"
+        position="fixed"
         elevation={0}
         sx={{
-          backgroundColor: "rgba(255, 255, 255, 0.8)",
-          backdropFilter: "blur(12px)",
+          backgroundColor: "#ffffff",
           color: "#333",
           borderBottom: "1px solid rgba(0,0,0,0.08)",
         }}
@@ -249,10 +303,13 @@ export default function Navbar() {
               display: "block",
               fontWeight: 800,
               letterSpacing: 0.5,
-              mr: 4
+              mr: 4,
             }}
           >
-            <Link href={"/"} style={{ color: "#1976d2", textDecoration: "none" }}>
+            <Link
+              href={"/"}
+              style={{ color: "#1976d2", textDecoration: "none" }}
+            >
               SocialConnect
             </Link>
           </Typography>
@@ -264,14 +321,29 @@ export default function Navbar() {
               component="div"
               sx={{ display: { xs: "none", sm: "block" }, fontWeight: 600 }}
             >
-              <Link href={"/"} style={{ color: "#555", textDecoration: "none", transition: "color 0.2s" }} onMouseOver={(e) => (e.currentTarget.style.color = "#1976d2")} onMouseOut={(e) => (e.currentTarget.style.color = "#555")}>
+              <Link
+                href={"/"}
+                style={{
+                  color: "#555",
+                  textDecoration: "none",
+                  transition: "color 0.2s",
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.color = "#1976d2")}
+                onMouseOut={(e) => (e.currentTarget.style.color = "#555")}
+              >
                 Home
               </Link>
             </Typography>
           )}
 
           <Box sx={{ flexGrow: 1 }} />
-          <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 1.5 }}>
+          <Box
+            sx={{
+              display: { xs: "none", md: "flex" },
+              alignItems: "center",
+              gap: 1.5,
+            }}
+          >
             {token && (
               <>
                 <IconButton
@@ -281,7 +353,11 @@ export default function Navbar() {
                   onClick={handleNotificationsMenuOpen}
                   aria-controls={notificationsMenuId}
                   aria-haspopup="true"
-                  sx={{ color: "#555", transition: "all 0.2s", "&:hover": { color: "#1976d2", transform: "scale(1.1)" } }}
+                  sx={{
+                    color: "#555",
+                    transition: "all 0.2s",
+                    "&:hover": { color: "#1976d2", transform: "scale(1.1)" },
+                  }}
                 >
                   <Badge badgeContent={badgeCount} color="error">
                     <NotificationsIcon />
@@ -296,7 +372,11 @@ export default function Navbar() {
                   aria-haspopup="true"
                   onClick={handleProfileMenuOpen}
                   color="inherit"
-                  sx={{ color: "#555", transition: "all 0.2s", "&:hover": { color: "#1976d2", transform: "scale(1.1)" } }}
+                  sx={{
+                    color: "#555",
+                    transition: "all 0.2s",
+                    "&:hover": { color: "#1976d2", transform: "scale(1.1)" },
+                  }}
                 >
                   <AccountCircle fontSize="large" />
                 </IconButton>
@@ -315,7 +395,7 @@ export default function Navbar() {
                   fontWeight: 600,
                   px: 3.5,
                   py: 1,
-                  fontSize: "1rem"
+                  fontSize: "1rem",
                 }}
               >
                 Login

@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { ThemeProvider } from "@mui/material/styles";
-
+import { Box } from "@mui/material";
 import Navbar from "./_components/navbar/navbar";
 import AuthGuard from "./_components/auth/AuthGuard";
 
@@ -30,7 +30,9 @@ export default function RootLayout({
             <Provider store={store}>
               <Navbar />
               <Toaster />
-              <AuthGuard>{children}</AuthGuard>
+              <AuthGuard>
+                <Box sx={{ mt: "70px" }}>{children}</Box>
+              </AuthGuard>
             </Provider>
           </ThemeProvider>
         </AppRouterCacheProvider>

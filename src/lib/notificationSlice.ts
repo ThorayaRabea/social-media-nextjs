@@ -22,18 +22,11 @@ export const getAllNotification = createAsyncThunk(
   "getAllNotification/notificationSlice",
   async (_, { rejectWithValue }) => {
     return axios
-      .get(
-        `https://route-posts.routemisr.com/notifications?page=1&limit=10`,
-        {
-          headers: { token: localStorage.getItem("userToken") },
-        },
-      )
-      .then((res) => {
-        return res.data;
+      .get(`https://route-posts.routemisr.com/notifications?page=1&limit=10`, {
+        headers: { token: localStorage.getItem("userToken") },
       })
-      .catch((err) => {
-        return rejectWithValue(err.response?.data || "Error");
-      });
+      .then((res) => res.data)
+      .catch((err) => rejectWithValue(err.response?.data || "Error"));
   },
 );
 
@@ -44,50 +37,22 @@ export const getUnreadNotificationCount = createAsyncThunk(
       .get(`https://route-posts.routemisr.com/notifications/unread-count`, {
         headers: { token: localStorage.getItem("userToken") },
       })
-      .then((res) => {
-        return res.data;
-      })
-      .catch((err) => {
-        return rejectWithValue(err.response?.data || "Error");
-      });
-  },
-);
-
-export const forceRefreshUnreadCount = createAsyncThunk(
-  "forceRefreshUnreadCount/notificationSlice",
-  async (_, { rejectWithValue }) => {
-    return axios
-      .get(`https://route-posts.routemisr.com/notifications/unread-count`, {
-        headers: { token: localStorage.getItem("userToken") },
-      })
-      .then((res) => {
-        return res.data;
-      })
-      .catch((err) => {
-        return rejectWithValue(err.response?.data || "Error");
-      });
+      .then((res) => res.data)
+      .catch((err) => rejectWithValue(err.response?.data || "Error"));
   },
 );
 
 export const makeNotificationRead = createAsyncThunk(
   "makeNotificationRead/notificationSlice",
   async (_, { rejectWithValue }) => {
-    const token = localStorage.getItem("userToken");
     return axios
       .patch(
         `https://route-posts.routemisr.com/notifications/read-all`,
         {},
-        {
-          headers: { token },
-        },
+        { headers: { token: localStorage.getItem("userToken") } },
       )
-      .then((res) => {
-        return res.data;
-      })
-      .catch((err) => {
-        console.error("Read all error:", err.response?.status, err.response?.data);
-        return rejectWithValue(err.response?.data || "Error");
-      });
+      .then((res) => res.data)
+      .catch((err) => rejectWithValue(err.response?.data || "Error"));
   },
 );
 
@@ -96,64 +61,33 @@ const notificationSlice = createSlice({
   initialState,
   reducers: {
     resetUnreadCount: (state) => {
-      // Save the current raw server count as the "cleared" baseline
-      if (state.rawServerUnreadCount > 0) {
-        localStorage.setItem("cleared_notification_count", state.rawServerUnreadCount.toString());
-      }
-      
       state.unreadNotificationsCount = {
         success: true,
         message: "",
         data: { unreadCount: 0 },
       };
     },
-    clearMarkedRead: (state) => {
-      localStorage.removeItem("cleared_notification_count");
-    },
   },
   extraReducers: (builder) => {
+    // Get All Notifications
     builder.addCase(getAllNotification.fulfilled, (state, action) => {
       state.allNotification = action.payload.data.notifications;
     });
     builder.addCase(getAllNotification.rejected, (state) => {
       state.allNotification = null;
     });
-    
-    const handleUnreadCount = (state: any, action: any) => {
+
+    // Get Unread Count
+    builder.addCase(getUnreadNotificationCount.fulfilled, (state, action) => {
       const serverCount = action.payload?.data?.unreadCount || 0;
       state.rawServerUnreadCount = serverCount;
-      
-      const clearedCountStr = localStorage.getItem("cleared_notification_count");
-      const clearedCount = clearedCountStr ? parseInt(clearedCountStr) : 0;
-      
-      let finalCount = serverCount;
-      
-      if (serverCount > 0 && clearedCount > 0) {
-        if (serverCount >= clearedCount) {
-          // Subtract the ones we already "cleared" locally
-          finalCount = serverCount - clearedCount;
-        } else {
-          // Server count dropped below our cleared count (e.g. backend finally reset it)
-          // So our baseline is no longer valid
-          localStorage.removeItem("cleared_notification_count");
-        }
-      } else if (serverCount === 0 && clearedCount > 0) {
-        // Server reset it, remove our local hack
-        localStorage.removeItem("cleared_notification_count");
-      }
-      
-      state.unreadNotificationsCount = {
-        ...action.payload,
-        data: { ...action.payload?.data, unreadCount: finalCount },
-      };
-    };
-
-    builder.addCase(getUnreadNotificationCount.fulfilled, handleUnreadCount);
+      state.unreadNotificationsCount = action.payload;
+    });
     builder.addCase(getUnreadNotificationCount.rejected, (state) => {
       state.unreadNotificationsCount = null;
     });
-    builder.addCase(forceRefreshUnreadCount.fulfilled, handleUnreadCount);
-    
+
+    // Make Notification Read
     builder.addCase(makeNotificationRead.fulfilled, (state) => {
       state.unreadNotificationsCount = {
         success: true,
@@ -171,6 +105,5 @@ const notificationSlice = createSlice({
   },
 });
 
-export const { resetUnreadCount, clearMarkedRead } = notificationSlice.actions;
+export const { resetUnreadCount } = notificationSlice.actions;
 export const notificationReducer = notificationSlice.reducer;
-
