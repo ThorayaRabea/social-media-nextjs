@@ -15,16 +15,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import {
-  PhotoCamera,
-  LockReset,
-  Article,
-  Delete,
-  FavoriteBorder,
-  ChatBubbleOutline,
-  MoreVert,
-  People,
-} from "@mui/icons-material";
+import { PhotoCamera, LockReset, Article, People } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import { store } from "../../lib/store";
 import { useFormik } from "formik";
@@ -108,6 +99,7 @@ export default function Profile() {
           dispatch(getFollowSuggestions());
           if (myProfile?._id) {
             dispatch(getUserProfile(myProfile._id));
+            dispatch(getMyProfile()); // 👈 بيحدث الـ followers/following count
           }
         } else {
           toast.success(response.message || "Action successful");
@@ -129,15 +121,9 @@ export default function Profile() {
     }
   }, [myProfile?._id]);
 
-  console.log("followSuggestions", followSuggestions);
-
   useEffect(() => {
     dispatch(getFollowSuggestions());
   }, []);
-
-  // useEffect(() => {
-
-  // }, [followSuggestions])
 
   return (
     <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
