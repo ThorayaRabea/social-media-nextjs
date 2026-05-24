@@ -1,8 +1,24 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { comments, commnetsReplyResponse, CreatedCommentResponse, createReplyCommentResponseType, DeleteCommentResponse, LikeAndUnlikeCommentResponse, UpdateCommentResponse, } from "../app/_interfaces/home";
+import {
+  comments,
+  commnetsReplyResponse,
+  CreatedCommentResponse,
+  createReplyCommentResponseType,
+  DeleteCommentResponse,
+  LikeAndUnlikeCommentResponse,
+  UpdateCommentResponse,
+} from "../app/_interfaces/home";
 import axios from "axios";
 
-const initialState: { allPostComments: comments[] | null, createComment: CreatedCommentResponse | null, commentsReply: commnetsReplyResponse | null, createReplyComment: createReplyCommentResponseType | null, updateComment: UpdateCommentResponse | null, deleteComment: DeleteCommentResponse | null, likeAndUnlikeComment: LikeAndUnlikeCommentResponse | null } = {
+const initialState: {
+  allPostComments: comments[] | null;
+  createComment: CreatedCommentResponse | null;
+  commentsReply: commnetsReplyResponse | null;
+  createReplyComment: createReplyCommentResponseType | null;
+  updateComment: UpdateCommentResponse | null;
+  deleteComment: DeleteCommentResponse | null;
+  likeAndUnlikeComment: LikeAndUnlikeCommentResponse | null;
+} = {
   allPostComments: null,
   createComment: null,
   commentsReply: null,
@@ -24,7 +40,6 @@ export const getAllComments = createAsyncThunk(
       )
       .then((res) => {
         console.log(res.data);
-
         return res.data;
       })
       .catch((err) => {
@@ -35,7 +50,7 @@ export const getAllComments = createAsyncThunk(
 
 export const createNewComment = createAsyncThunk(
   "createNewComment/commentsRepliesSlice",
-  async (payload: { id: string, data: FormData }, { rejectWithValue }) => {
+  async (payload: { id: string; data: FormData }, { rejectWithValue }) => {
     return axios
       .post(
         `https://route-posts.routemisr.com/posts/${payload.id}/comments`,
@@ -46,7 +61,6 @@ export const createNewComment = createAsyncThunk(
       )
       .then((res) => {
         console.log(res.data);
-
         return res.data;
       })
       .catch((err) => {
@@ -57,7 +71,10 @@ export const createNewComment = createAsyncThunk(
 
 export const commentsReplies = createAsyncThunk(
   "commentsReplies/commentsRepliesSlice",
-  async (payload: { postId: string, commentId: string, data: FormData }, { rejectWithValue }) => {
+  async (
+    payload: { postId: string; commentId: string; data: FormData },
+    { rejectWithValue },
+  ) => {
     return axios
       .post(
         `https://route-posts.routemisr.com/posts/${payload.postId}/comments/${payload.commentId}/replies`,
@@ -68,7 +85,6 @@ export const commentsReplies = createAsyncThunk(
       )
       .then((res) => {
         console.log(res.data);
-
         return res.data;
       })
       .catch((err) => {
@@ -79,7 +95,10 @@ export const commentsReplies = createAsyncThunk(
 
 export const getCommentReplies = createAsyncThunk(
   "getCommentReplies/commentsRepliesSlice",
-  async (payload: { postId: string, commentId: string }, { rejectWithValue }) => {
+  async (
+    payload: { postId: string; commentId: string },
+    { rejectWithValue },
+  ) => {
     return axios
       .get(
         `https://route-posts.routemisr.com/posts/${payload.postId}/comments/${payload.commentId}/replies?page=1&limit=10`,
@@ -99,7 +118,10 @@ export const getCommentReplies = createAsyncThunk(
 
 export const createReplyComment = createAsyncThunk(
   "createReplyComment/commentsRepliesSlice",
-  async (payload: { postId: string, commentId: string, data: FormData }, { rejectWithValue }) => {
+  async (
+    payload: { postId: string; commentId: string; data: FormData },
+    { rejectWithValue },
+  ) => {
     return axios
       .post(
         `https://route-posts.routemisr.com/posts/${payload.postId}/comments/${payload.commentId}/replies`,
@@ -110,7 +132,6 @@ export const createReplyComment = createAsyncThunk(
       )
       .then((res) => {
         console.log(res.data);
-
         return res.data;
       })
       .catch((err) => {
@@ -121,7 +142,10 @@ export const createReplyComment = createAsyncThunk(
 
 export const updateComment = createAsyncThunk(
   "updateComment/commentsRepliesSlice",
-  async (payload: { postId: string, commentId: string, data: FormData }, { rejectWithValue }) => {
+  async (
+    payload: { postId: string; commentId: string; data: FormData },
+    { rejectWithValue },
+  ) => {
     return axios
       .put(
         `https://route-posts.routemisr.com/posts/${payload.postId}/comments/${payload.commentId}`,
@@ -132,7 +156,6 @@ export const updateComment = createAsyncThunk(
       )
       .then((res) => {
         console.log(res.data);
-
         return res.data;
       })
       .catch((err) => {
@@ -143,7 +166,10 @@ export const updateComment = createAsyncThunk(
 
 export const likeAndUnlikeComment = createAsyncThunk(
   "likeAndUnlikeComment/commentsRepliesSlice",
-  async (payload: { postId: string, commentId: string }, { rejectWithValue }) => {
+  async (
+    payload: { postId: string; commentId: string },
+    { rejectWithValue },
+  ) => {
     return axios
       .put(
         `https://route-posts.routemisr.com/posts/${payload.postId}/comments/${payload.commentId}/like`,
@@ -154,7 +180,6 @@ export const likeAndUnlikeComment = createAsyncThunk(
       )
       .then((res) => {
         console.log(res.data);
-
         return res.data;
       })
       .catch((err) => {
@@ -165,7 +190,10 @@ export const likeAndUnlikeComment = createAsyncThunk(
 
 export const deleteComment = createAsyncThunk(
   "deleteComment/commentsRepliesSlice",
-  async (payload: { postId: string, commentId: string }, { rejectWithValue }) => {
+  async (
+    payload: { postId: string; commentId: string },
+    { rejectWithValue },
+  ) => {
     return axios
       .delete(
         `https://route-posts.routemisr.com/posts/${payload.postId}/comments/${payload.commentId}`,
@@ -175,7 +203,6 @@ export const deleteComment = createAsyncThunk(
       )
       .then((res) => {
         console.log(res.data);
-
         return res.data;
       })
       .catch((err) => {
@@ -184,15 +211,17 @@ export const deleteComment = createAsyncThunk(
   },
 );
 
-
 let CommentsSlice = createSlice({
   name: "CommentsSlice",
   initialState,
-  reducers: {},
+  reducers: {
+    clearComments: (state) => {
+      state.allPostComments = null;
+    },
+  },
   extraReducers: (builder) => {
     builder.addCase(getAllComments.fulfilled, (state, action) => {
       state.allPostComments = action.payload.data.comments;
-
       console.log("action", action.payload.data.comments);
     });
     builder.addCase(getAllComments.rejected, (state, action) => {
@@ -200,7 +229,6 @@ let CommentsSlice = createSlice({
     });
     builder.addCase(createNewComment.fulfilled, (state, action) => {
       state.createComment = action.payload.data.comment;
-
       console.log("action", action.payload.data.comment);
     });
     builder.addCase(createNewComment.rejected, (state, action) => {
@@ -208,7 +236,6 @@ let CommentsSlice = createSlice({
     });
     builder.addCase(commentsReplies.fulfilled, (state, action) => {
       state.commentsReply = action.payload.data.reply;
-
       console.log("action", action.payload.data.reply);
     });
     builder.addCase(commentsReplies.rejected, (state, action) => {
@@ -216,7 +243,6 @@ let CommentsSlice = createSlice({
     });
     builder.addCase(createReplyComment.fulfilled, (state, action) => {
       state.createReplyComment = action.payload.data.reply;
-
       console.log("action", action.payload.data.reply);
     });
     builder.addCase(createReplyComment.rejected, (state, action) => {
@@ -224,7 +250,6 @@ let CommentsSlice = createSlice({
     });
     builder.addCase(updateComment.fulfilled, (state, action) => {
       state.updateComment = action.payload.data.comment;
-
       console.log("action", action.payload.data.comment);
     });
     builder.addCase(updateComment.rejected, (state, action) => {
@@ -232,7 +257,6 @@ let CommentsSlice = createSlice({
     });
     builder.addCase(deleteComment.fulfilled, (state, action) => {
       state.deleteComment = action.payload.data;
-
       console.log("action", action.payload.data);
     });
     builder.addCase(deleteComment.rejected, (state, action) => {
@@ -240,7 +264,6 @@ let CommentsSlice = createSlice({
     });
     builder.addCase(likeAndUnlikeComment.fulfilled, (state, action) => {
       state.likeAndUnlikeComment = action.payload.data.comment;
-
       console.log("action", action.payload.data.comment);
     });
     builder.addCase(likeAndUnlikeComment.rejected, (state, action) => {
@@ -249,4 +272,5 @@ let CommentsSlice = createSlice({
   },
 });
 
+export const { clearComments } = CommentsSlice.actions; // 👈 ده اللي كان ناقص
 export let commentsReducers = CommentsSlice.reducer;

@@ -47,7 +47,7 @@ export const makeNotificationRead = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     return axios
       .patch(
-        `https://route-posts.routemisr.com/notifications/read-all`,
+        `/api/notifications/read-all`,
         {},
         { headers: { token: localStorage.getItem("userToken") } },
       )

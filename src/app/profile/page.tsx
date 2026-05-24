@@ -32,6 +32,8 @@ import {
   getUserProfile,
 } from "../../lib/authSlice";
 import toast from "react-hot-toast";
+import { getAllComments, clearComments } from "../../lib/commentsRepliesSlice";
+import { getSinglePost } from "../../lib/postsSlice";
 
 export default function Profile() {
   const auth = useSelector(
@@ -124,6 +126,13 @@ export default function Profile() {
   useEffect(() => {
     dispatch(getFollowSuggestions());
   }, []);
+  useEffect(() => {
+    if (myProfile?._id) {
+      dispatch(clearComments()); // صفري الأول ✅
+      dispatch(getSinglePost(myProfile._id));
+      dispatch(getAllComments(myProfile._id));
+    }
+  }, [myProfile?._id]);
 
   return (
     <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
