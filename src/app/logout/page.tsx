@@ -12,9 +12,12 @@ import {
   Radio,
   RadioGroup,
   TextField,
+  Typography,
+  Box,
+  Collapse,
 } from "@mui/material";
 import { useFormik } from "formik";
-import React from "react";
+import React, { useState } from "react";
 import * as Yup from "yup";
 import { handleSignUp } from "../../lib/authSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -24,6 +27,7 @@ import toast from "react-hot-toast";
 
 export default function Register() {
   const router = useRouter();
+  const [passwordFocused, setPasswordFocused] = useState(false);
   let dispatch = useDispatch<typeof store.dispatch>();
 
   const { isLoading } = useSelector(
@@ -34,17 +38,43 @@ export default function Register() {
 
   const validationSchema = Yup.object({
     name: Yup.string()
-      .required("name is requried")
-      .min(3, "must be atleast 3 characters")
-      .max(20, "max letters is 20"),
-    email: Yup.string().required("email is requried").email("invalid email"),
-    password: Yup.string().required("password is requried"),
+      .required("Name is required")
+      .min(3, "Must be at least 3 characters")
+      .max(20, "Max 20 characters"),
+    email: Yup.string().required("Email is required").email("Invalid email"),
+    password: Yup.string()
+      .required("Password is required")
+      .min(8, "Password must be at least 8 characters")
+      .matches(/[A-Z]/, "Must contain at least one uppercase letter (A-Z)")
+      .matches(/[a-z]/, "Must contain at least one lowercase letter (a-z)")
+      .matches(/[0-9]/, "Must contain at least one number (0-9)")
+      .matches(
+        /[#?!@$%^&*-]/,
+        "Must contain at least one special character (#?!@$%^&*-)",
+      ),
     rePassword: Yup.string()
-      .oneOf([Yup.ref("password")], "password must match")
-      .required("confirm password is requried"),
-    dateOfBirth: Yup.string().nullable().required("date of birth is requried"),
-    gender: Yup.string().required("gender is requried"),
+      .oneOf([Yup.ref("password")], "Passwords must match")
+      .required("Confirm password is required"),
+    dateOfBirth: Yup.string().nullable().required("Date of birth is required"),
+    gender: Yup.string().required("Gender is required"),
   });
+
+  const requirements = [
+    { label: "At least 8 characters", test: (v: string) => v.length >= 8 },
+    {
+      label: "One uppercase letter (A-Z)",
+      test: (v: string) => /[A-Z]/.test(v),
+    },
+    {
+      label: "One lowercase letter (a-z)",
+      test: (v: string) => /[a-z]/.test(v),
+    },
+    { label: "One number (0-9)", test: (v: string) => /[0-9]/.test(v) },
+    {
+      label: "One special character (#?!@$%^&*-)",
+      test: (v: string) => /[#?!@$%^&*-]/.test(v),
+    },
+  ];
 
   let formik = useFormik({
     initialValues: {
@@ -57,12 +87,10 @@ export default function Register() {
     },
     validationSchema,
     onSubmit: (values) => {
-      console.log(values);
       dispatch(handleSignUp(values))
         .unwrap()
         .then((response) => {
           if (response.success == true) {
-            
             toast.success("Account created successfully 🎉");
             setTimeout(() => {
               router.push("/login");
@@ -70,7 +98,7 @@ export default function Register() {
           }
         })
         .catch((err) => {
-          toast.error(err || "Registration failed please try again");
+          toast.error(err || "Registration failed, please try again");
         });
     },
   });
@@ -91,7 +119,7 @@ export default function Register() {
           <form onSubmit={formik.handleSubmit}>
             <TextField
               id="name"
-              label="full name..."
+              label="Full Name..."
               variant="outlined"
               name="name"
               value={formik.values.name}
@@ -104,7 +132,7 @@ export default function Register() {
             />
             <TextField
               id="email"
-              label="email..."
+              label="Email..."
               variant="outlined"
               name="email"
               value={formik.values.email}
@@ -115,24 +143,83 @@ export default function Register() {
               error={formik.touched.email && Boolean(formik.errors.email)}
               helperText={formik.touched.email && formik.errors.email}
             />
+
+            {/* Password field */}
             <TextField
               type="password"
               id="password"
-              label="password..."
+              label="Password..."
               name="password"
               variant="outlined"
               onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
+              onBlur={(e) => {
+                formik.handleBlur(e);
+                // لو الـ password كامل وصح — اخبي الـ box
+                if (!formik.errors.password) setPasswordFocused(false);
+              }}
+              onFocus={() => setPasswordFocused(true)}
               value={formik.values.password}
               fullWidth
-              sx={{ marginBottom: "10px" }}
+              sx={{ marginBottom: "8px" }}
               error={formik.touched.password && Boolean(formik.errors.password)}
-              helperText={formik.touched.password && formik.errors.password}
             />
+
+            {/* Password Requirements Box مع Animation */}
+            <Collapse
+              in={
+                passwordFocused ||
+                (formik.touched.password && Boolean(formik.errors.password))
+              }
+            >
+              <Box
+                sx={{
+                  mb: 2,
+                  p: 1.5,
+                  borderRadius: 2,
+                  bgcolor: "#f9fafb",
+                  border: "1px solid #e0e0e0",
+                  transition: "all 0.3s ease",
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  display="block"
+                  fontWeight="700"
+                  mb={0.5}
+                >
+                  Password must contain:
+                </Typography>
+                {requirements.map((req) => {
+                  const passed = req.test(formik.values.password);
+                  return (
+                    <Typography
+                      key={req.label}
+                      variant="caption"
+                      display="block"
+                      sx={{
+                        color: formik.values.password
+                          ? passed
+                            ? "success.main"
+                            : "error.main"
+                          : "text.secondary",
+                        fontWeight: 500,
+                        transition: "color 0.3s ease",
+                        py: 0.2,
+                      }}
+                    >
+                      {formik.values.password ? (passed ? "✅" : "❌") : "•"}{" "}
+                      {req.label}
+                    </Typography>
+                  );
+                })}
+              </Box>
+            </Collapse>
+
             <TextField
               type="password"
               id="rePassword"
-              label="rePassword..."
+              label="Confirm Password..."
               name="rePassword"
               variant="outlined"
               onChange={formik.handleChange}
@@ -213,10 +300,7 @@ export default function Register() {
               }}
             >
               {isLoading ? (
-                <CircularProgress
-                  size={24}
-                  sx={{ color: "white" }}
-                ></CircularProgress>
+                <CircularProgress size={24} sx={{ color: "white" }} />
               ) : (
                 "Submit"
               )}
