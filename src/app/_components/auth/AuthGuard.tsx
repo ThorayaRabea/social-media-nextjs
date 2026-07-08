@@ -21,22 +21,14 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
 
     if (isValidToken(token)) {
-      // User has a valid token
-      if (pathname === "/login" || pathname === "/logout") {
-        // Logged-in user on login/register page → redirect to home
-        router.replace("/");
-        return;
-      }
       setAuthState("authenticated");
-    } else {
-      // No valid token
       if (isPublicRoute) {
-        // Already on a public page → allow
-        setAuthState("unauthenticated");
-      } else {
-        // Trying to access protected page → redirect to register/logout
+        router.replace("/");
+      }
+    } else {
+      setAuthState("unauthenticated");
+      if (!isPublicRoute) {
         router.replace("/logout");
-        return;
       }
     }
   }, [pathname, router]);
